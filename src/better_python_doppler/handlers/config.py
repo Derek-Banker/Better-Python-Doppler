@@ -4,7 +4,7 @@ from requests import Response
 from datetime import datetime as DateTime
 from urllib.parse import quote as url_encode
 
-from handlers import Project, Environment
+from better_python_doppler.handlers import Project, Environment
 
 class Config:
 
@@ -66,25 +66,45 @@ class Config:
 # API METHODS
 # -----------------------------
 
-def list_configs(auth: str, project_name: str, environment_slug: str = "Environment slug", page: int = 1, per_page: int = 20) -> Response:
-    url = f"https://api.doppler.com/v3/configs?project={project_name}&environment={url_encode(environment_slug)}&page={page}&per_page={per_page}"
+def list_configs(
+        auth: str, 
+        project_name: str, 
+        environment_slug: str = "Environment slug", 
+        page: int = 1, 
+        per_page: int = 20
+    ) -> Response:
+
+    base_url = "https://api.doppler.com/v3/configs"
+    params = {
+        "project":      project_name,
+        "environment":  url_encode(environment_slug),
+        "page":         page,
+        "per_page":     per_page
+        }
 
     headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-    }
+        "accept":           "application/json",
+        "authorization":    f"Bearer {auth}"
+        }
 
-    response = requests.get(url, headers=headers)
-    return response
+    return requests.get(base_url, params, headers=headers)
 
 
-def get_config(auth: str, project_name: str, config_name: str) -> Response:
-    url = f"https://api.doppler.com/v3/configs/config?project={project_name}&config={config_name}"
+def get_config(
+        auth: str, 
+        project_name: str, 
+        config_name: str
+    ) -> Response:
+    
+    base_url = "https://api.doppler.com/v3/configs/config"
+    params = {
+        "project": project_name,
+        "config":  config_name
+        }
 
     headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-    }
+        "accept":           "application/json",
+        "authorization":    f"Bearer {auth}"
+        }
 
-    response = requests.get(url, headers=headers)
-    return response
+    return requests.get(base_url, params, headers=headers)

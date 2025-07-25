@@ -3,7 +3,7 @@ import requests
 from requests import Response
 from datetime import datetime as DateTime
 
-from handlers import Project
+from better_python_doppler.handlers import Project
 
 class Environment:
 
@@ -47,24 +47,3 @@ class Environment:
 # API METHODS
 # -----------------------------
 
-def list_environments(auth: str, project_name: str) -> Response:
-    url = f"https://api.doppler.com/v3/environments?project={project_name}"
-
-    headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-        }
-
-    response = requests.get(url, headers=headers)
-    return response
-
-def get_environment(auth: str, project_name: str, environment_name: str) -> Response:
-    url = f"https://api.doppler.com/v3/environments/environment?project={project_name}&environment={environment_name}"
-
-    headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-    }
-
-    response = requests.get(url, headers=headers)
-    return response

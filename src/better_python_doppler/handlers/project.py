@@ -37,25 +37,3 @@ class Project:
 # PROJECT METHODS
 # -----------------------------
 
-def list_projects(auth: str, page: int = 1, per_page: int = 20) -> Response:
-
-    url = f"https://api.doppler.com/v3/projects?page={page}&per_page={per_page}"
-
-    headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-        }
-
-    response = requests.get(url, headers=headers)
-    return response
-
-def get_project(auth: str, project_name: str) -> Response:
-    url = f"https://api.doppler.com/v3/projects/project?project={project_name}"
-
-    headers = {
-        "accept": "application/json",
-        "authorization": f"Bearer {auth}"
-        }
-
-    response = requests.get(url, headers=headers)
-    return response
