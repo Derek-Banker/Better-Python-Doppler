@@ -1,8 +1,8 @@
-"""Example usage of the chainable Doppler SDK."""
-from better_python_doppler.doppler_sdk import Doppler
+"""Example for retrieving a single secret using the fluent interface."""
+from better_python_doppler import Doppler
 
-# Expect a token in the environment under DOPPLER_TOKEN
-sdk = Doppler(service_token_environ_name="DOPPLER_TOKEN")
-secret = sdk.project("my-project").config("dev").secrets().get("MY_SECRET")
-print(secret)
+# Replace with your service token
+sdk = Doppler(service_token="YOUR_TOKEN")
 
+resp = sdk.project("your-project").config("dev").secrets().get("SECRET_NAME")
+print(resp.json())

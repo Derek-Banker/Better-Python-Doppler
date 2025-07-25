@@ -2,7 +2,7 @@
 
 from datetime import datetime as DateTime
 
-from models import ProjectModel
+from .project import ProjectModel
 
 class EnvironmentModel:
 
