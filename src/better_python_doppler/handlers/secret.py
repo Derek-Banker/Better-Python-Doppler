@@ -7,7 +7,7 @@ import utils
 
 from models import SecretModel
 
-class Secret:
+class Secrets:
 
     
 

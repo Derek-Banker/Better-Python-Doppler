@@ -3,7 +3,7 @@ import requests
 from requests import Response
 from datetime import datetime as DateTime
 
-class Project:
+class Projects:
 
     def __init__(
             self,

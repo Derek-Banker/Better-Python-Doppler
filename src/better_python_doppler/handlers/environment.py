@@ -3,22 +3,22 @@ import requests
 from requests import Response
 from datetime import datetime as DateTime
 
-from handlers import Project
+from handlers import Projects
 
-class Environment:
+class Environments:
 
     def __init__(
             self,
             id: str | None = None,
             name: str | None = None,
-            project: Project = Project(),
+            project: Projects = Projects(),
             created_at: DateTime | None = None,
             initial_fetch_at: DateTime | None = None,
         ) -> None:
         
         self._id:               str | None      = id
         self._name:             str | None      = name
-        self._project:          Project         = project
+        self._project:          Projects         = project
         self._created_at:       DateTime | None = created_at
         self._initial_fetch_at: DateTime | None = initial_fetch_at
 
@@ -32,7 +32,7 @@ class Environment:
         return self._name
     
     @property
-    def project(self) -> Project:
+    def project(self) -> Projects:
         return self._project
     
     @property

@@ -4,15 +4,15 @@ from requests import Response
 from datetime import datetime as DateTime
 from urllib.parse import quote as url_encode
 
-from handlers import Project, Environment
+from handlers import Projects, Environments
 
-class Config:
+class Configs:
 
     def __init__(
             self,
             name: str | None = None,
-            project: Project = Project(),
-            environment: Environment = Environment(),
+            project: Projects = Projects(),
+            environment: Environments = Environments(),
             created_at: DateTime | None = None,
             initial_fetch_at: DateTime | None = None,
             last_fetch_at: DateTime | None = None,
@@ -21,8 +21,8 @@ class Config:
         ) -> None:
         
         self._name:             str | None      = name 
-        self._project:          Project         = project
-        self._environment:      Environment     = environment
+        self._project:          Projects         = project
+        self._environment:      Environments     = environment
         self._created_at:       DateTime | None = created_at
         self._initial_fetch_at: DateTime | None = initial_fetch_at
         self._last_fetch_at:    DateTime | None = last_fetch_at
@@ -34,11 +34,11 @@ class Config:
         return self._name
     
     @property
-    def project(self) -> Project:
+    def project(self) -> Projects:
         return self._project
     
     @property
-    def environment(self) -> Environment:
+    def environment(self) -> Environments:
         return self._environment
     
     @property
