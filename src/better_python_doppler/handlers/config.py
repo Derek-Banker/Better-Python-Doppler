@@ -4,7 +4,8 @@ from requests import Response
 from datetime import datetime as DateTime
 from urllib.parse import quote as url_encode
 
-from handlers import Projects, Environments
+from .project import Projects
+from .environment import Environments
 
 class Configs:
 

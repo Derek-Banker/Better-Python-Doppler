@@ -3,7 +3,7 @@ import requests
 from requests import Response
 from datetime import datetime as DateTime
 
-from handlers import Projects
+from .project import Projects
 
 class Environments:
 
