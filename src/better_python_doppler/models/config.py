@@ -2,7 +2,7 @@
 
 from datetime import datetime as DateTime
 
-from models import ProjectModel, EnvironmentModel
+from better_python_doppler.models import ProjectModel, EnvironmentModel
 
 class ConfigModel:
 

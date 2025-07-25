@@ -101,7 +101,7 @@ class SecretAPI:
             "authorization":    f"Bearer {auth}"
         }
 
-        return requests.get(base_url, headers=headers, json=payload)
+        return requests.post(base_url, headers=headers, json=payload)
 
     @staticmethod
     def download_secrets(
@@ -129,8 +129,12 @@ class SecretAPI:
         if secrets:
             params["secrets"] = ",".join(secrets)
 
+        accept_header = "application/json"
+        if format not in ["json", "dotnet-json"]:
+            accept_header = "text/plain"
+
         headers = {
-            "accept": "application/json",
+            "accept": accept_header,
             "authorization": f"Bearer {auth}"
         }
 
@@ -155,7 +159,7 @@ class SecretAPI:
             "authorization": f"Bearer {auth}"
         }
 
-        return requests.get(base_url, params, headers=headers)
+        return requests.delete(base_url, params=params, headers=headers)
 
     @staticmethod   
     def update_note(
@@ -180,4 +184,4 @@ class SecretAPI:
             "authorization": f"Bearer {auth}"
         }
 
-        return requests.get(base_url, params, headers=headers, json=payload)
+        return requests.post(base_url, params=params, headers=headers, json=payload)

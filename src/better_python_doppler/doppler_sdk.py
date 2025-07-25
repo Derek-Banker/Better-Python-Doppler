@@ -1,14 +1,20 @@
 # src\better_python_doppler\doppler_sdk.py
 
+from better_python_doppler.secret import Secrets
+
 class Doppler:
 
     def __init__(
             self,
             service_token: str | None = None,
+            *,
             service_token_environ_name: str | None = None
         ) -> None:
 
         self._service_token = self._get_service_token(service_token, service_token_environ_name)
+        
+        self._secrets: Secrets | None = None 
+
 
     def _get_service_token(
             self, 
@@ -32,3 +38,17 @@ class Doppler:
                 raise ValueError("Attempting to retrieve the environmental variable named `%s` returns `None`.", service_token_environ_name)    
 
             return pulled_token
+        
+    @property
+    def service_token(self) -> str:
+        return self._service_token
+    
+    @property
+    def Secrets(self) -> Secrets:
+        if self._secrets is None:
+            self._secrets = Secrets(self._service_token)
+
+        return self._secrets
+    
+    
+    

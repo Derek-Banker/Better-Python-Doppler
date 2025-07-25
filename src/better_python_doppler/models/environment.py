@@ -1,8 +1,8 @@
 # src\better_python_doppler\models\environment.py
 
 from datetime import datetime as DateTime
-
-from models import ProjectModel
+from typing import Any
+from better_python_doppler.models import ProjectModel
 
 class EnvironmentModel:
 
