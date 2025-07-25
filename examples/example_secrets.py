@@ -15,4 +15,8 @@ from better_python_doppler import Doppler
 
 doppler = Doppler(service_token=SERVICE_TOKEN)
 
-doppler.Secrets.list_names(PROJECT_NAME, CONFIG_NAME) 
+names = doppler.Secrets.list_names(PROJECT_NAME, CONFIG_NAME)
+
+list_secrets = doppler.Secrets.list(PROJECT_NAME, CONFIG_NAME)
+
+print(doppler.Secrets.get(PROJECT_NAME, CONFIG_NAME, SECRET_NAME).value.raw)

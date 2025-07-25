@@ -58,6 +58,10 @@ class SecretModel():
     def name(self) -> str | None:
         return self._name
     
+    @property
+    def value(self) -> SecretValue:
+        return self._value
+    
     @name.setter
     def name(self, name: str) -> None:
         self._name = name

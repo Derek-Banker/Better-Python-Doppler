@@ -2,7 +2,8 @@
 
 from datetime import datetime as DateTime
 from typing import Any
-from better_python_doppler.models import ProjectModel
+
+from .project import ProjectModel
 
 class EnvironmentModel:
 
