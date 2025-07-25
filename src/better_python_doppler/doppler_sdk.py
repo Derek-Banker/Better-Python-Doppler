@@ -1,82 +1,82 @@
-# src\better_python_doppler\doppler_sdk.py
+"""Simple chainable interface for the Doppler API."""
+from __future__ import annotations
 
-from datetime import datetime as DateTime
+from typing import Optional
+import os
 
-from handlers import Projects, Environments, Configs, Secrets
+from dotenv import load_dotenv
+import requests
+
 
 class Doppler:
+    """Entry point for interacting with Doppler secrets."""
 
-    def __init__(
-            self,
-            service_token: str | None = None,
-            service_token_environ_name: str | None = None
-        ) -> None:
+    def __init__(self, service_token: Optional[str] = None, service_token_environ_name: Optional[str] = None) -> None:
+        self._token = self._get_service_token(service_token, service_token_environ_name)
 
-        self._service_token = self._get_service_token(service_token, service_token_environ_name)
-
-        # self.environments =  Environments()
-        # self.environments =  Configs()
-        # self.environments =  Secrets()
-
-
-    def _get_service_token(
-            self, 
-            service_token: str | None = None,
-            service_token_environ_name: str | None = None
-        ) -> str:
-
+    def _get_service_token(self, service_token: Optional[str], service_token_environ_name: Optional[str]) -> str:
         if (service_token is None) == (service_token_environ_name is None):
-            raise ValueError("Either `service_token` OR `service_token_environ_name` must be provided upon init. NOT both or neither.") 
-        
+            raise ValueError(
+                "Either `service_token` or `service_token_environ_name` must be provided"
+            )
         if service_token is not None:
             return service_token
-        else:
-            import os
-            from dotenv import load_dotenv
-            load_dotenv()
+        load_dotenv()
+        pulled_token = os.getenv(service_token_environ_name)  # type: ignore[arg-type]
+        if pulled_token is None:
+            raise ValueError(
+                f"Attempting to retrieve the environmental variable named `{service_token_environ_name}` returned `None`."
+            )
+        return pulled_token
 
-            pulled_token = os.getenv(service_token_environ_name) # type: ignore
+    def project(self, project_name: str) -> "ProjectHandle":
+        """Select a Doppler project."""
+        return ProjectHandle(self._token, project_name)
 
-            if pulled_token is None:
-                raise ValueError("Attempting to retrieve the environmental variable named `%s` returns `None`.", service_token_environ_name)    
 
-            return pulled_token
-        
-    def Project(
-            self,
-            id: str | None = None,
-            name: str | None = None,
-            description: str | None = None,
-            created_at: DateTime | None = None
-        ) -> Projects:
+class ProjectHandle:
+    """Represents a selected project."""
 
-        self.projects = Projects(id, name, description, created_at)
-        return self.projects
+    def __init__(self, token: str, project_name: str) -> None:
+        self._token = token
+        self._project_name = project_name
 
-    def Environment(self,
-            id: str | None = None,
-            name: str | None = None,
-            project: Projects = Projects(),
-            created_at: DateTime | None = None,
-            initial_fetch_at: DateTime | None = None
-        ) -> Environments:
-        
-        self.environments = Environments(id, name, project, created_at, initial_fetch_at)
-        return self.environments
+    def config(self, config_name: str) -> "ConfigHandle":
+        """Select a config within the current project."""
+        return ConfigHandle(self._token, self._project_name, config_name)
 
-    def Config(
-            self,
-            name: str | None = None,
-            project: Projects = Projects(),
-            environment: Environments = Environments(),
-            created_at: DateTime | None = None,
-            initial_fetch_at: DateTime | None = None,
-            last_fetch_at: DateTime | None = None,
-            root: bool | None = None,
-            locked: bool | None = None
-        ) -> Configs:
-        
-        self.configs = Configs(name, project, environment, created_at, initial_fetch_at, last_fetch_at, root, locked)
-        return self.configs
 
-    def Secrets(self) -> Secrets:     
+class ConfigHandle:
+    """Represents a selected config."""
+
+    def __init__(self, token: str, project_name: str, config_name: str) -> None:
+        self._token = token
+        self._project_name = project_name
+        self._config_name = config_name
+
+    def secrets(self) -> "SecretsHandle":
+        """Return a handle to work with secrets."""
+        return SecretsHandle(self._token, self._project_name, self._config_name)
+
+
+class SecretsHandle:
+    """Operations dealing with secrets."""
+
+    def __init__(self, token: str, project_name: str, config_name: str) -> None:
+        self._token = token
+        self._project_name = project_name
+        self._config_name = config_name
+
+    def get(self, name: str) -> dict:
+        """Retrieve a secret value.
+
+        Returns the parsed JSON response from the Doppler API.
+        """
+        url = (
+            f"https://api.doppler.com/v3/configs/config/secret?project={self._project_name}"
+            f"&config={self._config_name}&name={name}"
+        )
+        headers = {"accept": "application/json", "authorization": f"Bearer {self._token}"}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()

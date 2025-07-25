@@ -6,8 +6,9 @@ build-backend   = "setuptools.build_meta"
 name            = "better-python-doppler"
 version         = "0.1.0"
 dependencies    = [
-
-                  ]
+    "requests",
+    "python-dotenv",
+]
 requires-python = ">=3.12"
 authors         = [{name = "Derek Banker", email = "dbb2002@gmail.com"}]
 
