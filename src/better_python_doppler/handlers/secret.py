@@ -3,14 +3,12 @@ from typing import Literal
 
 from requests import Response
 
-import utils
-
-from models import SecretModel
+from ..utils import list_to_comma_string
+from ..models import SecretModel
 
 class Secrets:
-
-    
-
+# Placeholder class for potential future expansion
+    pass
 # -----------------------------
 # API METHODS
 # -----------------------------
@@ -26,7 +24,7 @@ def list_secrets(
     ) -> Response:
 
     if len(secrets) > 0:
-        requested_secrets = "&secrets=" + utils.list_to_comma_string(secrets)
+        requested_secrets = "&secrets=" + list_to_comma_string(secrets)
     else:
         requested_secrets = ""
 
@@ -120,7 +118,7 @@ def download_secrets(
     ) -> Response:
 
     if len(secrets) > 0:
-        requested_secrets = "&secrets=" + utils.list_to_comma_string(secrets)
+        requested_secrets = "&secrets=" + list_to_comma_string(secrets)
     else:
         requested_secrets = ""
 

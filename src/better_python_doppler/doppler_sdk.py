@@ -1,82 +1,92 @@
-# src\better_python_doppler\doppler_sdk.py
+"""Simplified Doppler SDK with a fluent interface."""
 
-from datetime import datetime as DateTime
+from __future__ import annotations
 
-from handlers import Projects, Environments, Configs, Secrets
+from dataclasses import dataclass
+from typing import Any
+import os
+
+from dotenv import load_dotenv
+
+from .handlers import secret as secret_handler
+
 
 class Doppler:
+    """Entry point for interacting with the Doppler API."""
 
     def __init__(
-            self,
-            service_token: str | None = None,
-            service_token_environ_name: str | None = None
-        ) -> None:
-
+        self,
+        service_token: str | None = None,
+        *,
+        service_token_environ_name: str | None = None,
+    ) -> None:
         self._service_token = self._get_service_token(service_token, service_token_environ_name)
 
-        # self.environments =  Environments()
-        # self.environments =  Configs()
-        # self.environments =  Secrets()
+    def _get_service_token(self, direct_token: str | None, env_name: str | None) -> str:
+        if (direct_token is None) == (env_name is None):
+            raise ValueError(
+                "Provide `service_token` or `service_token_environ_name`, not both or neither."
+            )
+
+        if direct_token:
+            return direct_token
+
+        load_dotenv()
+        token = os.getenv(env_name)  # type: ignore[arg-type]
+        if token is None:
+            raise ValueError(f"Environment variable `{env_name}` is not set")
+        return token
+
+    def project(self, project_name: str) -> "ProjectHandle":
+        """Select a project by name."""
+        return ProjectHandle(self._service_token, project_name)
 
 
-    def _get_service_token(
-            self, 
-            service_token: str | None = None,
-            service_token_environ_name: str | None = None
-        ) -> str:
+@dataclass
+class ProjectHandle:
+    token: str
+    project_name: str
 
-        if (service_token is None) == (service_token_environ_name is None):
-            raise ValueError("Either `service_token` OR `service_token_environ_name` must be provided upon init. NOT both or neither.") 
-        
-        if service_token is not None:
-            return service_token
-        else:
-            import os
-            from dotenv import load_dotenv
-            load_dotenv()
+    def config(self, config_name: str) -> "ConfigHandle":
+        """Select a config within this project."""
+        return ConfigHandle(self.token, self.project_name, config_name)
 
-            pulled_token = os.getenv(service_token_environ_name) # type: ignore
 
-            if pulled_token is None:
-                raise ValueError("Attempting to retrieve the environmental variable named `%s` returns `None`.", service_token_environ_name)    
+@dataclass
+class ConfigHandle:
+    token: str
+    project_name: str
+    config_name: str
 
-            return pulled_token
-        
-    def Project(
-            self,
-            id: str | None = None,
-            name: str | None = None,
-            description: str | None = None,
-            created_at: DateTime | None = None
-        ) -> Projects:
+    def secrets(self) -> "SecretsHandle":
+        """Access secrets for this config."""
+        return SecretsHandle(self.token, self.project_name, self.config_name)
 
-        self.projects = Projects(id, name, description, created_at)
-        return self.projects
 
-    def Environment(self,
-            id: str | None = None,
-            name: str | None = None,
-            project: Projects = Projects(),
-            created_at: DateTime | None = None,
-            initial_fetch_at: DateTime | None = None
-        ) -> Environments:
-        
-        self.environments = Environments(id, name, project, created_at, initial_fetch_at)
-        return self.environments
+@dataclass
+class SecretsHandle:
+    token: str
+    project_name: str
+    config_name: str
 
-    def Config(
-            self,
-            name: str | None = None,
-            project: Projects = Projects(),
-            environment: Environments = Environments(),
-            created_at: DateTime | None = None,
-            initial_fetch_at: DateTime | None = None,
-            last_fetch_at: DateTime | None = None,
-            root: bool | None = None,
-            locked: bool | None = None
-        ) -> Configs:
-        
-        self.configs = Configs(name, project, environment, created_at, initial_fetch_at, last_fetch_at, root, locked)
-        return self.configs
+    def get(self, secret_name: str) -> Any:
+        """Retrieve a single secret."""
+        resp = secret_handler.get_secret(
+            self.token,
+            self.project_name,
+            self.config_name,
+            secret_name,
+        )
+        resp.raise_for_status()
+        return resp.json()
 
-    def Secrets(self) -> Secrets:     
+    def list(self) -> Any:
+        """List all secrets for the config."""
+        resp = secret_handler.list_secrets(
+            self.token,
+            self.project_name,
+            self.config_name,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
