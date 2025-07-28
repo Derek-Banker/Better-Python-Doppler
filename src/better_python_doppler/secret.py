@@ -76,8 +76,23 @@ class Secrets:
         return response_to_model(response)
 
     def update(
-        self, project_name: str, config_name: str, secrets: dict[str, str]
-    ) -> list[SecretModel]:
+            self, 
+            project_name: str, 
+            config_name: str,
+            secret_name: str | None = None,
+            secret_value: str | None = None,
+            *, 
+            secrets: dict[str, str] | None = None
+        ) -> list[SecretModel]:
+        
+        if ((secret_name is None and secret_value is None) and (secrets is None)):
+            raise ValueError("Invalid Parameter: Must provide `secret_name` and `secret_value` or `secrets`.")
+
+        if secret_name is not None and secret_value is not None:
+            secrets = {secret_name: secret_value}
+        if secrets is None:
+            raise ValueError
+
         response = SecretAPI.update_secrets(
             auth=self._service_token,
             project_name=project_name,
@@ -87,18 +102,21 @@ class Secrets:
         response.raise_for_status()
         data = response.json()
 
-        secrets_dict = data.get("secrets", {})
-        secret_models = []
-        for name, value_dict in secrets_dict.items():
-            secret_value = SecretValue(
-                raw=value_dict.get("raw"),
-                computed=value_dict.get("computed"),
-                note=value_dict.get("note"),
-            )
-            secret_model = SecretModel(name=name, value=secret_value)
-            secret_models.append(secret_model)
-        return secret_models
-    
+        result = []
+        for name, value_dict in data.get("secrets", {}).items():
+            result.append(SecretModel(
+                            name=name, 
+                            value=SecretValue(
+                                raw=value_dict.get("raw"), 
+                                computed=value_dict.get("computed"), 
+                                note=value_dict.get("note")
+                                )
+                            )
+                        )
+
+        return result
+
+
     def download(
         self,
         project_name: str,
