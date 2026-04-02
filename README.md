@@ -34,6 +34,7 @@ Supported and documented today:
 - direct token auth with `Doppler(service_token="...")`
 - explicit environment lookup with `Doppler(service_token_environ_name="...")`
 - explicit `.env` loading with `Doppler.from_env(...)`
+- client-level scoped defaults with `client.set_scope(project_name, config_name)`
 - secrets access through `client.secrets`
 - compatibility access through `client.Secrets`
 - top-level compatibility exports: `Secrets` and `SecretsClient`
@@ -108,6 +109,25 @@ print(secret.value.raw)
 
 raw_value = client.secrets.get_raw("my-project", "dev", "API_KEY")
 print(raw_value)
+```
+
+### Scoped Defaults
+
+If you are repeatedly targeting the same project and config, set a client scope once and omit them from later secrets calls.
+
+```python
+from better_python_doppler import Doppler
+
+client = Doppler(service_token="dp.st.example-token").set_scope(
+    "my-project",
+    "dev",
+)
+
+print(client.secrets.list_names())
+print(client.secrets.get_raw("API_KEY"))
+client.secrets.set("API_KEY", "next-value")
+
+client.clear_scope()
 ```
 
 ### Single Secret Set/Get

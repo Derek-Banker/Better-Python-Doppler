@@ -20,6 +20,8 @@ class Doppler:
             service_token_environ_name,
         )
         self._transport = RequestsTransport(self._service_token)
+        self._project_name: str | None = None
+        self._config_name: str | None = None
         self._secrets: SecretsClient | None = None
 
     @classmethod
@@ -67,12 +69,32 @@ class Doppler:
     def service_token(self) -> str:
         return self._service_token
 
+    def set_scope(self, project_name: str, config_name: str) -> "Doppler":
+        self._project_name = project_name
+        self._config_name = config_name
+
+        if self._secrets is not None:
+            self._secrets.set_scope(project_name, config_name)
+
+        return self
+
+    def clear_scope(self) -> "Doppler":
+        self._project_name = None
+        self._config_name = None
+
+        if self._secrets is not None:
+            self._secrets.clear_scope()
+
+        return self
+
     @property
     def secrets(self) -> SecretsClient:
         if self._secrets is None:
             self._secrets = SecretsClient(
                 self._service_token,
                 transport=self._transport,
+                project_name=self._project_name,
+                config_name=self._config_name,
             )
 
         return self._secrets
