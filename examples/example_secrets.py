@@ -1,38 +1,36 @@
-# === BOILER PLATE SUPPORT ==============
+from __future__ import annotations
 
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from _example_support import build_offline_client
 
-from datetime import datetime as DateTime
 
-SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
-PROJECT_NAME = os.getenv("PROJECT_NAME")
-CONFIG_NAME = os.getenv("CONFIG_NAME")
+def main() -> None:
+    client, transport = build_offline_client()
 
-var_list = [SERVICE_TOKEN, PROJECT_NAME, CONFIG_NAME]
+    transport.queue_json({"names": ["API_KEY", "TIMEOUT"]})
+    transport.queue_json(
+        {
+            "secrets": {
+                "API_KEY": {
+                    "raw": "alpha",
+                    "computed": "alpha",
+                    "note": "primary",
+                },
+                "TIMEOUT": {
+                    "raw": "30",
+                    "computed": "30",
+                    "note": None,
+                },
+            }
+        }
+    )
 
-if (    SERVICE_TOKEN   is None  
-    or  PROJECT_NAME    is None 
-    or  CONFIG_NAME     is None):
-    raise ValueError
+    names = client.Secrets.list_names("my-project", "dev")
+    values = client.secrets.as_dict("my-project", "dev")
 
-# === BOILER PLATE SUPPORT ==============
+    print(f"Compatibility alias works: {client.Secrets is client.secrets}")
+    print(names)
+    print(values)
 
-from better_python_doppler import Doppler
 
-doppler = Doppler(service_token=SERVICE_TOKEN)
-
-names = doppler.Secrets.list_names(PROJECT_NAME, CONFIG_NAME)
-
-list_secrets = doppler.Secrets.list(PROJECT_NAME, CONFIG_NAME)
-
-print(doppler.Secrets.get(PROJECT_NAME, CONFIG_NAME, "TEST_GET").value.raw)
-
-doppler.Secrets.update(PROJECT_NAME, CONFIG_NAME, secrets={"TEST_SET": DateTime.strftime(DateTime.now(), "%Y-%m-%d %H:%M:%S")})
-
-print(doppler.Secrets.get(PROJECT_NAME, CONFIG_NAME, "TEST_SET").value.raw)
-
-doppler.Secrets.update(PROJECT_NAME, CONFIG_NAME, "TEST_SET", DateTime.strftime(DateTime.now(), "%Y-%m-%d %H:%M:%S"))
-
-print(doppler.Secrets.get(PROJECT_NAME, CONFIG_NAME, "TEST_SET").value.raw)
+if __name__ == "__main__":
+    main()

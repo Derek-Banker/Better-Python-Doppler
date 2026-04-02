@@ -1,14 +1,15 @@
 # src\better_python_doppler\apis\secret_apis.py
 
-import requests
 from requests import Response
 from typing import Literal
+
+from better_python_doppler.transport import SyncTransport
 
 class SecretAPI:
 
     @staticmethod
     def list_secrets(
-        auth: str,
+        transport: SyncTransport,
         project_name: str,
         config_name: str,
         include_dynamic_secrets: bool = True,
@@ -16,7 +17,7 @@ class SecretAPI:
         secrets: list[str] | None = None,
         include_managed_secrets: bool = True
     ) -> Response:
-        base_url = "https://api.doppler.com/v3/configs/config/secrets"
+        base_url = "/v3/configs/config/secrets"
         params = {
             "project":  project_name,
             "config":   config_name,
@@ -26,25 +27,24 @@ class SecretAPI:
             }
         
         headers = {
-            "Accept":           "application/json",
-            "Authorization":    f"Bearer {auth}",
+            "Accept": "application/json",
             }
         
         if secrets:
             params["secrets"] = ",".join(secrets)
 
-        return requests.get(base_url, params, headers=headers)
+        return transport.get(base_url, params=params, headers=headers)
 
     @staticmethod
     def list_secret_names(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             config_name: str, 
             include_dynamic_secrets: bool = False, 
             include_managed_secrets: bool = True
         ) -> Response:
 
-        base_url = "https://api.doppler.com/v3/configs/config/secrets/names"
+        base_url = "/v3/configs/config/secrets/names"
         params = {
             "project":  project_name,
             "config":   config_name,
@@ -53,20 +53,19 @@ class SecretAPI:
             }
         
         headers = {
-            "accept":           "application/json",
-            "authorization":    f"Bearer {auth}"
+            "accept": "application/json",
             }
         
-        return requests.get(base_url, params, headers=headers)
+        return transport.get(base_url, params=params, headers=headers)
 
     @staticmethod
     def get_secret(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             config_name: str,
             secret_name: str 
         ) -> Response:
-        base_url = "https://api.doppler.com/v3/configs/config/secret"
+        base_url = "/v3/configs/config/secret"
         params = {
             "project":  project_name,
             "config":   config_name,
@@ -74,20 +73,19 @@ class SecretAPI:
             }
 
         headers = {
-            "accept":           "application/json",
-            "authorization":    f"Bearer {auth}"
+            "accept": "application/json",
         }
 
-        return requests.get(base_url, params, headers=headers)
+        return transport.get(base_url, params=params, headers=headers)
 
     @staticmethod
     def update_secrets(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             config_name: str, 
             secrets: dict[str, str]
         ) -> Response:
-        base_url = "https://api.doppler.com/v3/configs/config/secrets"
+        base_url = "/v3/configs/config/secrets"
 
         payload = {
             "project":  project_name,
@@ -96,26 +94,25 @@ class SecretAPI:
         }
 
         headers = {
-            "accept":           "application/json",
-            "content-type":     "application/json",
-            "authorization":    f"Bearer {auth}"
+            "accept": "application/json",
+            "content-type": "application/json",
         }
 
-        return requests.post(base_url, headers=headers, json=payload)
+        return transport.post(base_url, headers=headers, json=payload)
 
     @staticmethod
     def download_secrets(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             config_name: str,
             format: Literal["json", "dotnet-json", "env", "yaml" , "docker", "env-no-quotes"] = "json",
             name_transformer: Literal["camel", "upper-camel", "lower-snake", "tf-var", "dotnet", "dotnet-env", "lower-kebab"] | None = None,
             include_dynamic_secrets: bool = False,
             dynamic_secrets_ttl_sec: int = 1800,
-            secrets: list[str] = []
+            secrets: list[str] | None = None
         ) -> Response:
 
-        base_url = "https://api.doppler.com/v3/configs/config/secrets/download"
+        base_url = "/v3/configs/config/secrets/download"
         params = {
             "project":  project_name,
             "config":   config_name,
@@ -135,19 +132,18 @@ class SecretAPI:
 
         headers = {
             "accept": accept_header,
-            "authorization": f"Bearer {auth}"
         }
 
-        return requests.get(base_url, params, headers=headers)
+        return transport.get(base_url, params=params, headers=headers)
 
     @staticmethod
     def delete_secret(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             config_name: str, 
             secret_name: str
         ) -> Response:
-        base_url = "https://api.doppler.com/v3/configs/config/secret"
+        base_url = "/v3/configs/config/secret"
         params = {
             "project":  project_name,
             "config":   config_name,
@@ -156,20 +152,19 @@ class SecretAPI:
 
         headers = {
             "accept": "application/json",
-            "authorization": f"Bearer {auth}"
         }
 
-        return requests.delete(base_url, params=params, headers=headers)
+        return transport.delete(base_url, params=params, headers=headers)
 
     @staticmethod   
     def update_note(
-            auth: str, 
+            transport: SyncTransport,
             project_name: str, 
             secret_name: str,
             note: str 
         ) -> Response:
 
-        base_url = "https://api.doppler.com/v3/projects/project/note"
+        base_url = "/v3/projects/project/note"
         params = {
             "project": project_name
         }
@@ -181,7 +176,6 @@ class SecretAPI:
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {auth}"
         }
 
-        return requests.post(base_url, params=params, headers=headers, json=payload)
+        return transport.post(base_url, params=params, headers=headers, json=payload)
