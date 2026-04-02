@@ -4,21 +4,39 @@ build-backend   = "setuptools.build_meta"
 
 [project]
 name            = "better-python-doppler"
-version         = "1.0.0"
+version         = "1.0.1"
 dependencies    = [
-
+                    "requests",
+                    "python-dotenv",
                   ]
 requires-python = ">=3.12"
 authors         = [{name = "Derek Banker", email = "dbb2002@gmail.com"}]
 
-description     = "A simplified and up to date Python SDK for Doppler. Because their current one has stale docs and doesn't provide much IDE support."
+description     = "Lightweight, secrets-first Python SDK for the Doppler API."
 readme          = "README.md"
 license         = "Apache-2.0"
 license-files   = ["LICENSE"]   
-keywords        = ["Doppler", "SKD"]
+keywords        = ["doppler", "secrets", "sdk", "python"]
 classifiers     = [
-                    "Programming Language :: Python"
+                    "Development Status :: 3 - Alpha",
+                    "Intended Audience :: Developers",
+                    "Operating System :: OS Independent",
+                    "Programming Language :: Python :: 3",
+                    "Programming Language :: Python :: 3 :: Only",
+                    "Programming Language :: Python :: 3.12",
+                    "Topic :: Security",
+                    "Topic :: Software Development :: Libraries :: Python Modules"
                   ]
+
+[project.urls]
+Homepage   = "https://github.com/Derek-Banker/Better-Python-Doppler"
+Repository = "https://github.com/Derek-Banker/Better-Python-Doppler"
+Issues     = "https://github.com/Derek-Banker/Better-Python-Doppler/issues"
+
+[project.optional-dependencies]
+test = [
+         "pytest>=8.0",
+       ]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -26,3 +44,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where   = ["src"]
 include = ["better_python_doppler*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = [
+              "tests",
+            ]
+pythonpath = [
+               "src",
+             ]

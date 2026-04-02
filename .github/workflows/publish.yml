@@ -4,35 +4,112 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
-  build-and-publish:
+  validate-release:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.12"
 
-      - name: Install build tools
-        run: python -m pip install --upgrade build twine
+      - name: Verify release tag matches project version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          version = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          tag = os.environ["RELEASE_TAG"]
+          allowed_tags = {version, f"v{version}"}
+          if tag not in allowed_tags:
+              raise SystemExit(
+                  f"Release tag {tag!r} does not match pyproject version {version!r}. Expected one of {sorted(allowed_tags)!r}."
+              )
+          print(f"Validated release tag {tag} for version {version}.")
+          PY
+
+      - name: Install package, test, and build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[test] build twine
+
+      - name: Run test suite
+        run: python -m pytest
+
+      - name: Remove stale build artifacts
+        run: rm -rf build dist
 
       - name: Build distributions
         run: python -m build --sdist --wheel
 
-      - name: Attach distributions to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate distribution metadata
+        run: python -m twine check dist/*
+
+      - name: Upload validated distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist
+          path: dist/*
+
+  install-from-wheel:
+    needs: validate-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download built distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: dist
+
+      - name: Install wheel in a clean environment and smoke test imports
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" dist/*
+          python -m pip install --upgrade pip
+          python -m pip install dist/*.whl
+          python -c "from better_python_doppler import Doppler, Secrets, SecretsClient; client = Doppler(service_token='dp.st.smoke-token'); assert client.Secrets is client.secrets; assert isinstance(client.Secrets, Secrets); assert isinstance(client.secrets, SecretsClient)"
+
+  publish-to-pypi:
+    needs: install-from-wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download validated distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: dist
+
+      - name: Install publish tooling
+        run: python -m pip install --upgrade pip twine
 
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          twine upload dist/* \
+          python -m twine upload dist/* \
             --username "__token__" \
             --password "${{ secrets.PYPI_API_TOKEN }}"
+
+      - name: Attach distributions to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
